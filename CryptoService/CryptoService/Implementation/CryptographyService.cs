@@ -82,16 +82,27 @@ namespace CryptoService.Implementation
             symmetricKey.Padding = PaddingMode.PKCS7;
 
             using var decryptor = symmetricKey.CreateDecryptor(keyBytes, ivStringBytes);
-            using var memoryStream = new MemoryStream(cipherTextBytes);
-            using var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read);
+            using var decryptorMemoryStream = new MemoryStream(cipherTextBytes);
+            using var decryptorCryptoStream = new CryptoStream(decryptorMemoryStream, decryptor, CryptoStreamMode.Read);
 
-            var plainTextBytes = new byte[cipherTextBytes.Length];
-            var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
+            var decryptorPlainTextBytes = new byte[cipherTextBytes.Length];
+            var decryptedByteCount = 0;
 
-            memoryStream.Close();
-            cryptoStream.Close();
+            while (decryptedByteCount < decryptorPlainTextBytes.Length)
+            {
+                var bytesRead = decryptorCryptoStream.Read(decryptorPlainTextBytes, decryptedByteCount,
+                    decryptorPlainTextBytes.Length - decryptedByteCount);
 
-            return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
+                if (bytesRead == 0)
+                    break;
+
+                decryptedByteCount += bytesRead;
+            }
+
+            decryptorMemoryStream.Close();
+            decryptorCryptoStream.Close();
+
+            return Encoding.UTF8.GetString(decryptorPlainTextBytes, 0, decryptedByteCount);
         }
 
         private static byte[] GenerateKeySizeBitsOfRandomEntropy()

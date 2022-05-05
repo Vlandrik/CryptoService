@@ -1,7 +1,6 @@
 ﻿var password = "TestPassword";
-var testText = "TestLine";
+var testText = "TestText-TestLine-TestLine-TestLine-TestLine";
 Console.WriteLine($"Original Text: : {testText}");
-
 
 var service = new CryptoService.Implementation.CryptographyService(password);
 Console.WriteLine($"Password : {password}");
